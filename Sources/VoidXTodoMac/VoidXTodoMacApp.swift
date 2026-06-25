@@ -1,0 +1,18 @@
+import SwiftUI
+
+@main
+struct VoidXTodoMacApp: App {
+    @StateObject private var store = TodoStore()
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(store)
+                .frame(minWidth: 1120, minHeight: 720)
+        }
+        .windowStyle(.titleBar)
+        .commands {
+            CommandGroup(replacing: .newItem) { }
+        }
+    }
+}
