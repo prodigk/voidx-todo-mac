@@ -3,6 +3,26 @@ import Foundation
 struct AppData: Codable {
     var todos: [TodoItem]
     var notes: [NoteItem]
+    var categories: [TodoCategory]
+
+    init(todos: [TodoItem], notes: [NoteItem], categories: [TodoCategory] = []) {
+        self.todos = todos
+        self.notes = notes
+        self.categories = categories
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case todos
+        case notes
+        case categories
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        todos = try container.decode([TodoItem].self, forKey: .todos)
+        notes = try container.decode([NoteItem].self, forKey: .notes)
+        categories = try container.decodeIfPresent([TodoCategory].self, forKey: .categories) ?? []
+    }
 }
 
 enum PersistenceService {

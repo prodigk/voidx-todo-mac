@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct TodoRow: View {
+    @EnvironmentObject private var store: TodoStore
+
     let occurrence: TodoOccurrence
     var compact: Bool = false
     var showsEditButton: Bool = true
@@ -42,6 +44,10 @@ struct TodoRow: View {
                     PriorityDot(priority: occurrence.todo.priority)
                 }
 
+                if let category = store.category(for: occurrence.todo.categoryID) {
+                    CategoryChip(category: category, compact: compact)
+                }
+
                 if !compact && !occurrence.todo.detail.isEmpty {
                     Text(occurrence.todo.detail)
                         .font(.system(size: 13))
@@ -73,12 +79,13 @@ struct TodoRow: View {
             }
         }
         .padding(compact ? 9 : 13)
-        .background(compact ? CohereTheme.canvas.opacity(0.82) : CohereTheme.softStone.opacity(0.38))
+        .background(compact ? CohereTheme.controlSurface : CohereTheme.softStone.opacity(0.38))
         .clipShape(RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
         .overlay {
             RoundedRectangle(cornerRadius: CohereTheme.compactRadius)
                 .stroke(CohereTheme.hairline, lineWidth: 1)
         }
+        .opacity(occurrence.isCompleted ? 0.48 : 1)
     }
 
     private var priorityColor: Color {

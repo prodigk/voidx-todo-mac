@@ -7,6 +7,7 @@ struct TodoItem: Codable, Identifiable, Equatable {
     var dueDate: Date
     var isCompleted: Bool
     var priority: TodoPriority
+    var categoryID: UUID?
     var recurrenceRule: RecurrenceRule?
     var createdAt: Date
     var updatedAt: Date
@@ -20,6 +21,7 @@ struct TodoItem: Codable, Identifiable, Equatable {
         dueDate: Date,
         isCompleted: Bool = false,
         priority: TodoPriority = .normal,
+        categoryID: UUID? = nil,
         recurrenceRule: RecurrenceRule? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
@@ -32,6 +34,7 @@ struct TodoItem: Codable, Identifiable, Equatable {
         self.dueDate = dueDate
         self.isCompleted = isCompleted
         self.priority = priority
+        self.categoryID = categoryID
         self.recurrenceRule = recurrenceRule
         self.createdAt = createdAt
         self.updatedAt = updatedAt

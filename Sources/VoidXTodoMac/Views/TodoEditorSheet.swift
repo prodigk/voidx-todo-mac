@@ -10,13 +10,15 @@ struct TodoEditorSheet: View {
     @State private var detail: String
     @State private var dueDate: Date
     @State private var priority: TodoPriority
+    @State private var categoryID: UUID?
 
-    init(todo: TodoItem?) {
+    init(todo: TodoItem?, defaultDueDate: Date = Date()) {
         self.todo = todo
         _title = State(initialValue: todo?.title ?? "")
         _detail = State(initialValue: todo?.detail ?? "")
-        _dueDate = State(initialValue: todo?.dueDate ?? Date())
+        _dueDate = State(initialValue: todo?.dueDate ?? defaultDueDate)
         _priority = State(initialValue: todo?.priority ?? .normal)
+        _categoryID = State(initialValue: todo?.categoryID)
     }
 
     var body: some View {
@@ -35,7 +37,11 @@ struct TodoEditorSheet: View {
             DatePicker("Due", selection: $dueDate)
                 .font(.system(size: 13))
                 .padding(12)
-                .background(CohereTheme.softStone.opacity(0.58), in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
+                .background(CohereTheme.controlSurface, in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: CohereTheme.compactRadius)
+                        .stroke(CohereTheme.hairline, lineWidth: 1)
+                }
 
             Picker("Priority", selection: $priority) {
                 ForEach(TodoPriority.allCases) { priority in
@@ -43,6 +49,13 @@ struct TodoEditorSheet: View {
                 }
             }
             .pickerStyle(.segmented)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Category")
+                    .font(CohereTheme.monoLabel(11))
+                    .foregroundStyle(CohereTheme.slate)
+                CategorySelectionControl(selectedCategoryID: $categoryID)
+            }
 
             HStack {
                 Spacer()
@@ -56,7 +69,7 @@ struct TodoEditorSheet: View {
         }
         .padding(24)
         .frame(width: 420)
-        .background(CohereTheme.canvas)
+        .background(CohereTheme.panelSurface)
     }
 
     private func save() {
@@ -65,9 +78,10 @@ struct TodoEditorSheet: View {
             todo.detail = detail
             todo.dueDate = dueDate
             todo.priority = priority
+            todo.categoryID = categoryID
             store.updateTodo(todo)
         } else {
-            store.addTodo(title: title, detail: detail, dueDate: dueDate, priority: priority)
+            store.addTodo(title: title, detail: detail, dueDate: dueDate, priority: priority, categoryID: categoryID)
         }
         dismiss()
     }

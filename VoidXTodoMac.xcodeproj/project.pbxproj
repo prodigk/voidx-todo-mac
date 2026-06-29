@@ -1,0 +1,544 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01B8D0FC0E90E3B2F01D1733 /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7128464B19811780DDD8BD /* PersistenceService.swift */; };
+		14DB5B0D6DFCF151348600D5 /* TodoPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29EB8D9CAAEBAE86C1C6A54D /* TodoPriority.swift */; };
+		1F7C2414E8D5BE1E97864611 /* VoidXTodoWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 05B5F2B1CE5691E3AD9E46EF /* VoidXTodoWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2425AA137002EEBDC29E004B /* RecurrenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA38198A71B0709655DDCB75 /* RecurrenceService.swift */; };
+		2E4DA01B1534976FC3B4AD1E /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1C96144D5DABD468939046 /* TodoItem.swift */; };
+		30655B63D0EC11533967AABC /* RecurrenceRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3B13B6D0A4C9DB04F7F608 /* RecurrenceRule.swift */; };
+		31D768691A3F365D1FD8FB32 /* TodoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926AE84AD983A39A89FFF3CC /* TodoStore.swift */; };
+		3D3B8F4C080F75E4311FE4ED /* TodoEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA791C5F4AE71A63DFFA51DE /* TodoEditorSheet.swift */; };
+		3E6F7969202857A3EB213095 /* CategoryControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A76A290915E239BD16BD884 /* CategoryControls.swift */; };
+		4DE05287E9BA6FB501E84E6A /* VoidXTodoMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E2E71704F4251B4C06688B3 /* VoidXTodoMacApp.swift */; };
+		598E7991DA6B3E02DA3EE42D /* TodoRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52D9E56876C821BF6989AB48 /* TodoRow.swift */; };
+		5BE397B9EB0AF9204490776C /* QuickAddTodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9513152AEA962101952E9459 /* QuickAddTodoView.swift */; };
+		5E5C606462EDF3A1662520E0 /* VoidXTodayWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC756AB2367C197CA2CE3ABA /* VoidXTodayWidget.swift */; };
+		603FD41F57B4AACC285E1F33 /* SectionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A9AC850412D8877A5EB5D5 /* SectionViews.swift */; };
+		6840B61590A48674B65D9A2A /* CohereTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473935FAF624BC47F0918CCD /* CohereTheme.swift */; };
+		ABAACA38BB3B76512C39A605 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 3E26691F647E4A54B824E373 /* AppIcon.icns */; };
+		B6699E69142D37C2EE74A6ED /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AE543A34E36A2FD27F6C22 /* ContentView.swift */; };
+		C23968D51C7F8A3890386137 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 261A532F7A6C5B56F46216A2 /* CalendarService.swift */; };
+		D6DB6AAF246AD2ECC2D14B75 /* AppSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D946EFA6A6184202DC5EDECA /* AppSection.swift */; };
+		DE62E8961DCF1301269121E9 /* TodoCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC8C7A8F92020107782B5C43 /* TodoCategory.swift */; };
+		F56DFA04D665B78F77139799 /* NoteItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C4EA3B52DB47EFA8CA9F0A /* NoteItem.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		243DD5296441EFEF558D4936 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BE60EFAFB7C98128331BC7CC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C2E17EF041C177DD2D18E542;
+			remoteInfo = VoidXTodoWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6F93FB32F8A18A39EA9267CD /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1F7C2414E8D5BE1E97864611 /* VoidXTodoWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		05B5F2B1CE5691E3AD9E46EF /* VoidXTodoWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = VoidXTodoWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D3B13B6D0A4C9DB04F7F608 /* RecurrenceRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecurrenceRule.swift; sourceTree = "<group>"; };
+		1F671E8DF778A8E5C9087A47 /* VoidXTodoMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VoidXTodoMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		261A532F7A6C5B56F46216A2 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
+		29EB8D9CAAEBAE86C1C6A54D /* TodoPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoPriority.swift; sourceTree = "<group>"; };
+		3A76A290915E239BD16BD884 /* CategoryControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryControls.swift; sourceTree = "<group>"; };
+		3E26691F647E4A54B824E373 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		473935FAF624BC47F0918CCD /* CohereTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CohereTheme.swift; sourceTree = "<group>"; };
+		52D9E56876C821BF6989AB48 /* TodoRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRow.swift; sourceTree = "<group>"; };
+		56C4EA3B52DB47EFA8CA9F0A /* NoteItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteItem.swift; sourceTree = "<group>"; };
+		6F7128464B19811780DDD8BD /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceService.swift; sourceTree = "<group>"; };
+		8B1C96144D5DABD468939046 /* TodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
+		8E2E71704F4251B4C06688B3 /* VoidXTodoMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoidXTodoMacApp.swift; sourceTree = "<group>"; };
+		926AE84AD983A39A89FFF3CC /* TodoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoStore.swift; sourceTree = "<group>"; };
+		9513152AEA962101952E9459 /* QuickAddTodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddTodoView.swift; sourceTree = "<group>"; };
+		AC756AB2367C197CA2CE3ABA /* VoidXTodayWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoidXTodayWidget.swift; sourceTree = "<group>"; };
+		B5AE543A34E36A2FD27F6C22 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		CA38198A71B0709655DDCB75 /* RecurrenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecurrenceService.swift; sourceTree = "<group>"; };
+		D946EFA6A6184202DC5EDECA /* AppSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSection.swift; sourceTree = "<group>"; };
+		DA791C5F4AE71A63DFFA51DE /* TodoEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoEditorSheet.swift; sourceTree = "<group>"; };
+		DC8C7A8F92020107782B5C43 /* TodoCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCategory.swift; sourceTree = "<group>"; };
+		F2A9AC850412D8877A5EB5D5 /* SectionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionViews.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		3A8C6C50933B9A8AF8DBE931 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3A76A290915E239BD16BD884 /* CategoryControls.swift */,
+				B5AE543A34E36A2FD27F6C22 /* ContentView.swift */,
+				9513152AEA962101952E9459 /* QuickAddTodoView.swift */,
+				F2A9AC850412D8877A5EB5D5 /* SectionViews.swift */,
+				DA791C5F4AE71A63DFFA51DE /* TodoEditorSheet.swift */,
+				52D9E56876C821BF6989AB48 /* TodoRow.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3B98394431CF30613D02E24F /* VoidXTodoMac */ = {
+			isa = PBXGroup;
+			children = (
+				8E2E71704F4251B4C06688B3 /* VoidXTodoMacApp.swift */,
+				CD746C8D3456C77B771BA763 /* Models */,
+				55386F22EAC24927C4022810 /* Services */,
+				3E61C1D8122B38D267B9B22B /* Stores */,
+				B2144F6EE9DC1EA8875CCB01 /* Theme */,
+				3A8C6C50933B9A8AF8DBE931 /* Views */,
+			);
+			name = VoidXTodoMac;
+			path = Sources/VoidXTodoMac;
+			sourceTree = "<group>";
+		};
+		3E61C1D8122B38D267B9B22B /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				926AE84AD983A39A89FFF3CC /* TodoStore.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
+		55386F22EAC24927C4022810 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				261A532F7A6C5B56F46216A2 /* CalendarService.swift */,
+				6F7128464B19811780DDD8BD /* PersistenceService.swift */,
+				CA38198A71B0709655DDCB75 /* RecurrenceService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		699321120CFAE8CB85AAE67A /* VoidXTodoWidget */ = {
+			isa = PBXGroup;
+			children = (
+				AC756AB2367C197CA2CE3ABA /* VoidXTodayWidget.swift */,
+			);
+			name = VoidXTodoWidget;
+			path = Sources/VoidXTodoWidget;
+			sourceTree = "<group>";
+		};
+		B2144F6EE9DC1EA8875CCB01 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				473935FAF624BC47F0918CCD /* CohereTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		BD43141DE50676325717993A = {
+			isa = PBXGroup;
+			children = (
+				BF6D4A610BB8D5133D4B229D /* Assets */,
+				3B98394431CF30613D02E24F /* VoidXTodoMac */,
+				699321120CFAE8CB85AAE67A /* VoidXTodoWidget */,
+				FDC222341BE134D1EF926CD2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BF6D4A610BB8D5133D4B229D /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				3E26691F647E4A54B824E373 /* AppIcon.icns */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		CD746C8D3456C77B771BA763 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D946EFA6A6184202DC5EDECA /* AppSection.swift */,
+				56C4EA3B52DB47EFA8CA9F0A /* NoteItem.swift */,
+				1D3B13B6D0A4C9DB04F7F608 /* RecurrenceRule.swift */,
+				DC8C7A8F92020107782B5C43 /* TodoCategory.swift */,
+				8B1C96144D5DABD468939046 /* TodoItem.swift */,
+				29EB8D9CAAEBAE86C1C6A54D /* TodoPriority.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		FDC222341BE134D1EF926CD2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1F671E8DF778A8E5C9087A47 /* VoidXTodoMac.app */,
+				05B5F2B1CE5691E3AD9E46EF /* VoidXTodoWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C2E17EF041C177DD2D18E542 /* VoidXTodoWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A3871DDC7E4E838F7433BEF0 /* Build configuration list for PBXNativeTarget "VoidXTodoWidget" */;
+			buildPhases = (
+				72ABA3EB35F9473FC5FC32ED /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VoidXTodoWidget;
+			packageProductDependencies = (
+			);
+			productName = VoidXTodoWidget;
+			productReference = 05B5F2B1CE5691E3AD9E46EF /* VoidXTodoWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		F93F9EB0CCCC4B92BDF31D02 /* VoidXTodoMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56AD653F71B9D8FA3CD8F870 /* Build configuration list for PBXNativeTarget "VoidXTodoMac" */;
+			buildPhases = (
+				B70DE58D3EF5E782C5BD1449 /* Sources */,
+				18B185DB04CEFFEB2F7A1326 /* Resources */,
+				6F93FB32F8A18A39EA9267CD /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5AD93DA7B27FC7FC1D748681 /* PBXTargetDependency */,
+			);
+			name = VoidXTodoMac;
+			packageProductDependencies = (
+			);
+			productName = VoidXTodoMac;
+			productReference = 1F671E8DF778A8E5C9087A47 /* VoidXTodoMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BE60EFAFB7C98128331BC7CC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					C2E17EF041C177DD2D18E542 = {
+						DevelopmentTeam = 3Y22R97HY4;
+						ProvisioningStyle = Automatic;
+					};
+					F93F9EB0CCCC4B92BDF31D02 = {
+						DevelopmentTeam = 3Y22R97HY4;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C5002D1CFC086EB518CB68B9 /* Build configuration list for PBXProject "VoidXTodoMac" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = BD43141DE50676325717993A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = FDC222341BE134D1EF926CD2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F93F9EB0CCCC4B92BDF31D02 /* VoidXTodoMac */,
+				C2E17EF041C177DD2D18E542 /* VoidXTodoWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		18B185DB04CEFFEB2F7A1326 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ABAACA38BB3B76512C39A605 /* AppIcon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		72ABA3EB35F9473FC5FC32ED /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5E5C606462EDF3A1662520E0 /* VoidXTodayWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B70DE58D3EF5E782C5BD1449 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D6DB6AAF246AD2ECC2D14B75 /* AppSection.swift in Sources */,
+				C23968D51C7F8A3890386137 /* CalendarService.swift in Sources */,
+				3E6F7969202857A3EB213095 /* CategoryControls.swift in Sources */,
+				6840B61590A48674B65D9A2A /* CohereTheme.swift in Sources */,
+				B6699E69142D37C2EE74A6ED /* ContentView.swift in Sources */,
+				F56DFA04D665B78F77139799 /* NoteItem.swift in Sources */,
+				01B8D0FC0E90E3B2F01D1733 /* PersistenceService.swift in Sources */,
+				5BE397B9EB0AF9204490776C /* QuickAddTodoView.swift in Sources */,
+				30655B63D0EC11533967AABC /* RecurrenceRule.swift in Sources */,
+				2425AA137002EEBDC29E004B /* RecurrenceService.swift in Sources */,
+				603FD41F57B4AACC285E1F33 /* SectionViews.swift in Sources */,
+				DE62E8961DCF1301269121E9 /* TodoCategory.swift in Sources */,
+				3D3B8F4C080F75E4311FE4ED /* TodoEditorSheet.swift in Sources */,
+				2E4DA01B1534976FC3B4AD1E /* TodoItem.swift in Sources */,
+				14DB5B0D6DFCF151348600D5 /* TodoPriority.swift in Sources */,
+				598E7991DA6B3E02DA3EE42D /* TodoRow.swift in Sources */,
+				31D768691A3F365D1FD8FB32 /* TodoStore.swift in Sources */,
+				4DE05287E9BA6FB501E84E6A /* VoidXTodoMacApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5AD93DA7B27FC7FC1D748681 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C2E17EF041C177DD2D18E542 /* VoidXTodoWidget */;
+			targetProxy = 243DD5296441EFEF558D4936 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2E996AC43E878144975F0A42 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "Generated/VoidXTodoMac-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "VoidX Todo";
+				INFOPLIST_KEY_CFBundleIconFile = AppIcon;
+				INFOPLIST_KEY_CFBundleURLTypes = "[[\"CFBundleURLSchemes\": [\"voidxtodo\"], \"CFBundleURLName\": \"VoidX Todo URL\"]]";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.voidx.todo.mac;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		7163A53952775CACE3AACB2D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 3Y22R97HY4;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		7B65BF72E37FE8239D5B40C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "Generated/VoidXTodoMac-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "VoidX Todo";
+				INFOPLIST_KEY_CFBundleIconFile = AppIcon;
+				INFOPLIST_KEY_CFBundleURLTypes = "[[\"CFBundleURLSchemes\": [\"voidxtodo\"], \"CFBundleURLName\": \"VoidX Todo URL\"]]";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.voidx.todo.mac;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		AEA584105D6E0FDBF4F58C03 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "Generated/VoidXTodoWidget-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "VoidX Today";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.voidx.todo.mac.widget;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BE22AEAF6242BCE8D9F3F0C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "Generated/VoidXTodoWidget-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "VoidX Today";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.voidx.todo.mac.widget;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		FCD1DE9EFDFFBA83B73D11A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 3Y22R97HY4;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		56AD653F71B9D8FA3CD8F870 /* Build configuration list for PBXNativeTarget "VoidXTodoMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B65BF72E37FE8239D5B40C2 /* Debug */,
+				2E996AC43E878144975F0A42 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A3871DDC7E4E838F7433BEF0 /* Build configuration list for PBXNativeTarget "VoidXTodoWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE22AEAF6242BCE8D9F3F0C7 /* Debug */,
+				AEA584105D6E0FDBF4F58C03 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C5002D1CFC086EB518CB68B9 /* Build configuration list for PBXProject "VoidXTodoMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FCD1DE9EFDFFBA83B73D11A4 /* Debug */,
+				7163A53952775CACE3AACB2D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BE60EFAFB7C98128331BC7CC /* Project object */;
+}

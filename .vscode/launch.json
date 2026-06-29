@@ -19,6 +19,26 @@
             "target": "VoidXTodoMac",
             "configuration": "release",
             "preLaunchTask": "swift: Build Release VoidXTodoMac"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:voidx-todo-mac}",
+            "name": "Debug VoidXTodoWidget",
+            "target": "VoidXTodoWidget",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug VoidXTodoWidget"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:voidx-todo-mac}",
+            "name": "Release VoidXTodoWidget",
+            "target": "VoidXTodoWidget",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release VoidXTodoWidget"
         }
     ]
 }

@@ -7,12 +7,17 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "VoidXTodoMac", targets: ["VoidXTodoMac"])
+        .executable(name: "VoidXTodoMac", targets: ["VoidXTodoMac"]),
+        .executable(name: "VoidXTodoWidget", targets: ["VoidXTodoWidget"])
     ],
     targets: [
         .executableTarget(
             name: "VoidXTodoMac",
             path: "Sources/VoidXTodoMac"
+        ),
+        .executableTarget(
+            name: "VoidXTodoWidget",
+            path: "Sources/VoidXTodoWidget"
         )
     ]
 )

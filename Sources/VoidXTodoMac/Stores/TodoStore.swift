@@ -1,9 +1,13 @@
 import Foundation
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 @MainActor
 final class TodoStore: ObservableObject {
     @Published private(set) var todos: [TodoItem] = []
     @Published private(set) var notes: [NoteItem] = []
+    @Published private(set) var categories: [TodoCategory] = []
     @Published var lastError: String?
 
     init() {
@@ -15,6 +19,7 @@ final class TodoStore: ObservableObject {
         detail: String,
         dueDate: Date,
         priority: TodoPriority,
+        categoryID: UUID? = nil,
         recurrenceRule: RecurrenceRule? = nil
     ) {
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -26,6 +31,7 @@ final class TodoStore: ObservableObject {
                 detail: detail.trimmingCharacters(in: .whitespacesAndNewlines),
                 dueDate: dueDate,
                 priority: priority,
+                categoryID: categoryID,
                 recurrenceRule: recurrenceRule
             )
         )
@@ -42,6 +48,15 @@ final class TodoStore: ObservableObject {
 
     func deleteTodo(id: UUID) {
         todos.removeAll { $0.id == id }
+        save()
+    }
+
+    func moveTodo(id: UUID, toDay day: Date) {
+        guard let index = todos.firstIndex(where: { $0.id == id }) else { return }
+        guard todos[index].recurrenceRule == nil else { return }
+
+        todos[index].dueDate = CalendarService.mergingDay(day, timeFrom: todos[index].dueDate)
+        todos[index].updatedAt = Date()
         save()
     }
 
@@ -68,6 +83,52 @@ final class TodoStore: ObservableObject {
         guard let index = todos.firstIndex(where: { $0.id == id }) else { return }
         todos[index].recurrenceRule?.isActive = isActive
         todos[index].updatedAt = Date()
+        save()
+    }
+
+    func category(for id: UUID?) -> TodoCategory? {
+        guard let id else { return nil }
+        return categories.first { $0.id == id }
+    }
+
+    func addCategory(name: String) -> UUID? {
+        let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanName.isEmpty else { return nil }
+
+        if let existing = categories.first(where: { $0.name.localizedCaseInsensitiveCompare(cleanName) == .orderedSame }) {
+            return existing.id
+        }
+
+        let category = TodoCategory(
+            name: cleanName,
+            colorIndex: categories.count % TodoCategoryPalette.count
+        )
+        categories.append(category)
+        save()
+        return category.id
+    }
+
+    func updateCategory(id: UUID, name: String, colorIndex: Int) {
+        guard let index = categories.firstIndex(where: { $0.id == id }) else { return }
+        let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanName.isEmpty else { return }
+
+        categories[index].name = cleanName
+        categories[index].colorIndex = colorIndex
+        categories[index].updatedAt = Date()
+        save()
+    }
+
+    func deleteCategory(id: UUID) {
+        categories.removeAll { $0.id == id }
+        for index in todos.indices where todos[index].categoryID == id {
+            todos[index].categoryID = nil
+            todos[index].updatedAt = Date()
+        }
+        for index in notes.indices where notes[index].categoryID == id {
+            notes[index].categoryID = nil
+            notes[index].updatedAt = Date()
+        }
         save()
     }
 
@@ -122,10 +183,11 @@ final class TodoStore: ObservableObject {
         return note.id
     }
 
-    func updateNote(id: UUID, title: String, body: String) {
+    func updateNote(id: UUID, title: String, body: String, categoryID: UUID?) {
         guard let index = notes.firstIndex(where: { $0.id == id }) else { return }
         notes[index].title = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Note" : title
         notes[index].body = body
+        notes[index].categoryID = categoryID
         notes[index].updatedAt = Date()
         save()
     }
@@ -136,6 +198,10 @@ final class TodoStore: ObservableObject {
     }
 
     private func occurrenceSort(_ lhs: TodoOccurrence, _ rhs: TodoOccurrence) -> Bool {
+        if lhs.isCompleted != rhs.isCompleted {
+            return !lhs.isCompleted
+        }
+
         if lhs.todo.priority != rhs.todo.priority {
             return priorityRank(lhs.todo.priority) > priorityRank(rhs.todo.priority)
         }
@@ -155,6 +221,7 @@ final class TodoStore: ObservableObject {
             if let data = try PersistenceService.load() {
                 todos = data.todos
                 notes = data.notes
+                categories = data.categories
             } else {
                 seedSampleData()
                 save()
@@ -167,11 +234,18 @@ final class TodoStore: ObservableObject {
 
     private func save() {
         do {
-            try PersistenceService.save(AppData(todos: todos, notes: notes))
+            try PersistenceService.save(AppData(todos: todos, notes: notes, categories: categories))
             lastError = nil
+            reloadWidgets()
         } catch {
             lastError = error.localizedDescription
         }
+    }
+
+    private func reloadWidgets() {
+        #if canImport(WidgetKit)
+        WidgetCenter.shared.reloadTimelines(ofKind: "VoidXTodayWidget")
+        #endif
     }
 
     private func seedSampleData() {
@@ -181,19 +255,32 @@ final class TodoStore: ObservableObject {
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: now) ?? now
         let friday = calendar.date(byAdding: .day, value: 4, to: now) ?? now
         let mondayWednesdayFriday = [2, 4, 6]
+        let planningCategory = TodoCategory(name: "Planning", colorIndex: 0)
+        let routineCategory = TodoCategory(name: "Routine", colorIndex: 1)
+        let financeCategory = TodoCategory(name: "Finance", colorIndex: 2)
+        let writingCategory = TodoCategory(name: "Writing", colorIndex: 3)
+
+        categories = [
+            planningCategory,
+            routineCategory,
+            financeCategory,
+            writingCategory
+        ]
 
         todos = [
             TodoItem(
                 title: "Plan today",
                 detail: "Review the week and pick the important three.",
                 dueDate: todayAtTen,
-                priority: .high
+                priority: .high,
+                categoryID: planningCategory.id
             ),
             TodoItem(
                 title: "Daily reset",
                 detail: "Clear desk, review inbox, and choose the next action.",
                 dueDate: calendar.date(bySettingHour: 8, minute: 40, second: 0, of: now) ?? now,
                 priority: .normal,
+                categoryID: routineCategory.id,
                 recurrenceRule: RecurrenceRule(
                     type: .daily,
                     startDate: now
@@ -204,6 +291,7 @@ final class TodoStore: ObservableObject {
                 detail: "Light recurring planning block.",
                 dueDate: calendar.date(bySettingHour: 9, minute: 30, second: 0, of: now) ?? now,
                 priority: .normal,
+                categoryID: routineCategory.id,
                 recurrenceRule: RecurrenceRule(
                     type: .weekly,
                     weekdays: mondayWednesdayFriday,
@@ -215,6 +303,7 @@ final class TodoStore: ObservableObject {
                 detail: "Monthly finance check.",
                 dueDate: calendar.date(bySettingHour: 15, minute: 0, second: 0, of: friday) ?? friday,
                 priority: .normal,
+                categoryID: financeCategory.id,
                 recurrenceRule: RecurrenceRule(
                     type: .monthly,
                     dayOfMonth: 25,
@@ -225,14 +314,16 @@ final class TodoStore: ObservableObject {
                 title: "Draft next note",
                 detail: "Capture loose ideas before they scatter.",
                 dueDate: tomorrow,
-                priority: .low
+                priority: .low,
+                categoryID: writingCategory.id
             )
         ]
 
         notes = [
             NoteItem(
                 title: "Inbox",
-                body: "Use this area for loose thoughts that are not Todo items yet."
+                body: "Use this area for loose thoughts that are not Todo items yet.",
+                categoryID: writingCategory.id
             )
         ]
     }

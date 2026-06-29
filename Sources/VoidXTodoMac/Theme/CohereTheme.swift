@@ -1,23 +1,68 @@
+import AppKit
 import SwiftUI
 
+enum AppAppearance: String, CaseIterable, Identifiable {
+    case light
+    case dark
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .light:
+            return "Light"
+        case .dark:
+            return "Dark"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .light:
+            return "sun.max"
+        case .dark:
+            return "moon"
+        }
+    }
+
+    var colorScheme: ColorScheme {
+        switch self {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        }
+    }
+}
+
 enum CohereTheme {
-    static let primary = Color(hex: 0x17171c)
+    static let primary = Color(light: 0x17171c, dark: 0xf3f1ea)
     static let cohereBlack = Color.black
-    static let ink = Color(hex: 0x212121)
-    static let deepGreen = Color(hex: 0x003c33)
-    static let darkNavy = Color(hex: 0x071829)
-    static let canvas = Color.white
-    static let softStone = Color(hex: 0xeeece7)
-    static let paleGreen = Color(hex: 0xedfce9)
-    static let paleBlue = Color(hex: 0xf1f5ff)
-    static let hairline = Color(hex: 0xd9d9dd)
-    static let borderLight = Color(hex: 0xe5e7eb)
-    static let muted = Color(hex: 0x93939f)
-    static let slate = Color(hex: 0x75758a)
-    static let bodyMuted = Color(hex: 0x616161)
-    static let coral = Color(hex: 0xff7759)
-    static let actionBlue = Color(hex: 0x1863dc)
-    static let formFocus = Color(hex: 0x9b60aa)
+    static let ink = Color(light: 0x212121, dark: 0xf1f0ea)
+    static let deepGreen = Color(light: 0x003c33, dark: 0x7dd8c0)
+    static let darkNavy = Color(light: 0x071829, dark: 0x071829)
+    static let canvas = Color(light: 0xffffff, dark: 0x0b1110)
+    static let panelSurface = Color(light: 0xffffff, dark: 0x111a18)
+    static let controlSurface = Color(light: 0xffffff, dark: 0x17221f)
+    static let softStone = Color(light: 0xeeece7, dark: 0x202927)
+    static let paleGreen = Color(light: 0xedfce9, dark: 0x18342a)
+    static let paleBlue = Color(light: 0xf1f5ff, dark: 0x112238)
+    static let hairline = Color(light: 0xd9d9dd, dark: 0x2f3a37)
+    static let borderLight = Color(light: 0xe5e7eb, dark: 0x36413e)
+    static let muted = Color(light: 0x93939f, dark: 0x8f9b98)
+    static let slate = Color(light: 0x75758a, dark: 0xaab2ae)
+    static let bodyMuted = Color(light: 0x616161, dark: 0xc5c9c3)
+    static let coral = Color(light: 0xff7759, dark: 0xff9a82)
+    static let holidayRed = Color(light: 0xd94a3a, dark: 0xff8e7d)
+    static let saturdayBlue = Color(light: 0x1863dc, dark: 0x8fb7ff)
+    static let actionBlue = Color(light: 0x1863dc, dark: 0x8fb7ff)
+    static let formFocus = Color(light: 0x9b60aa, dark: 0xd5a6df)
+    static let onPrimary = Color(light: 0xffffff, dark: 0x0b1110)
+    static let onDark = Color.white
+    static let darkBand = Color(light: 0x17171c, dark: 0x08110f)
+    static let sidebarBackground = Color(light: 0x003c33, dark: 0x001b17)
+    static let sidebarSelection = Color(light: 0xffffff, dark: 0xf3f1ea)
+    static let sidebarSelectionText = Color(hex: 0x17171c)
 
     static let panelRadius: CGFloat = 16
     static let compactRadius: CGFloat = 8
@@ -48,6 +93,7 @@ struct SectionTitle: View {
     let title: String
     let subtitle: String
     let count: Int?
+    var countLabel = "remaining"
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
@@ -66,9 +112,9 @@ struct SectionTitle: View {
             Spacer()
 
             if let count {
-                Text("\(count) remaining")
+                Text("\(count) \(countLabel)")
                     .font(CohereTheme.monoLabel(12))
-                    .foregroundStyle(CohereTheme.canvas)
+                    .foregroundStyle(CohereTheme.onPrimary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(CohereTheme.primary, in: Capsule())
@@ -84,7 +130,7 @@ struct QuietPanel<Content: View>: View {
     var body: some View {
         content
             .padding(20)
-            .background(CohereTheme.canvas)
+            .background(CohereTheme.panelSurface)
             .clipShape(RoundedRectangle(cornerRadius: CohereTheme.panelRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: CohereTheme.panelRadius)
@@ -100,11 +146,11 @@ struct DarkProductPanel<Content: View>: View {
     var body: some View {
         content
             .padding(20)
-            .background(CohereTheme.primary)
+            .background(CohereTheme.darkBand)
             .clipShape(RoundedRectangle(cornerRadius: CohereTheme.softRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: CohereTheme.softRadius)
-                    .stroke(CohereTheme.canvas.opacity(0.12), lineWidth: 1)
+                    .stroke(CohereTheme.onDark.opacity(0.12), lineWidth: 1)
             }
     }
 }
@@ -113,7 +159,7 @@ struct CoherePrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
-            .foregroundStyle(CohereTheme.canvas)
+            .foregroundStyle(CohereTheme.onPrimary)
             .padding(.horizontal, 18)
             .padding(.vertical, 10)
             .background(configuration.isPressed ? CohereTheme.deepGreen : CohereTheme.primary, in: Capsule())
@@ -123,7 +169,7 @@ struct CoherePrimaryButtonStyle: ButtonStyle {
 
 struct CohereIconButtonStyle: ButtonStyle {
     var foreground: Color = CohereTheme.ink
-    var background: Color = CohereTheme.canvas
+    var background: Color = CohereTheme.controlSurface
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -144,7 +190,7 @@ struct CohereTextFieldStyle: ViewModifier {
             .font(.system(size: 14))
             .padding(.horizontal, 14)
             .padding(.vertical, 11)
-            .background(CohereTheme.canvas, in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
+            .background(CohereTheme.controlSurface, in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
             .overlay {
                 RoundedRectangle(cornerRadius: CohereTheme.compactRadius)
                     .stroke(CohereTheme.hairline, lineWidth: 1)
@@ -161,5 +207,26 @@ extension View {
         self
             .padding(28)
             .background(CohereTheme.canvas)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+}
+
+private extension NSColor {
+    convenience init(hex: UInt, alpha: Double = 1) {
+        self.init(
+            srgbRed: CGFloat((hex >> 16) & 0xff) / 255,
+            green: CGFloat((hex >> 8) & 0xff) / 255,
+            blue: CGFloat(hex & 0xff) / 255,
+            alpha: CGFloat(alpha)
+        )
+    }
+}
+
+extension Color {
+    init(light: UInt, dark: UInt, alpha: Double = 1) {
+        self.init(nsColor: NSColor(name: nil) { appearance in
+            let bestMatch = appearance.bestMatch(from: [.darkAqua, .aqua])
+            return NSColor(hex: bestMatch == .darkAqua ? dark : light, alpha: alpha)
+        })
     }
 }
