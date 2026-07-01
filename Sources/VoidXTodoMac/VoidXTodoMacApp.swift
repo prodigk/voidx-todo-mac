@@ -6,14 +6,19 @@ struct VoidXTodoMacApp: App {
     @StateObject private var store = TodoStore()
     @StateObject private var pomodoro = PomodoroTimerStore()
 
+    private let minimumWindowSize = CGSize(width: 1120, height: 720)
+    private let defaultWindowSize = CGSize(width: 1280, height: 820)
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(pomodoro)
-                .frame(minWidth: 1120, minHeight: 720)
+                .frame(minWidth: minimumWindowSize.width, minHeight: minimumWindowSize.height)
         }
         .windowStyle(.titleBar)
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: defaultWindowSize.width, height: defaultWindowSize.height)
         .commands {
             CommandGroup(replacing: .newItem) { }
 

@@ -176,9 +176,14 @@ final class TodoStore: ObservableObject {
         occurrences(on: day).count
     }
 
-    func completedOccurrences() -> [TodoOccurrence] {
+    func completedOccurrences(in dateInterval: DateInterval? = nil) -> [TodoOccurrence] {
         let completedSingleTodos = todos
-            .filter { $0.recurrenceRule == nil && $0.isCompleted }
+            .filter { todo in
+                guard todo.recurrenceRule == nil && todo.isCompleted else { return false }
+                guard let dateInterval else { return true }
+                let completedDate = todo.completedAt ?? todo.dueDate
+                return dateInterval.contains(completedDate)
+            }
             .map {
                 TodoOccurrence(
                     todo: $0,
@@ -189,8 +194,12 @@ final class TodoStore: ObservableObject {
             }
 
         let completedRecurringTodos = todos.flatMap { todo in
-            todo.completedOccurrenceDates.map { completedDay in
-                TodoOccurrence(
+            todo.completedOccurrenceDates.compactMap { completedDay -> TodoOccurrence? in
+                if let dateInterval, !dateInterval.contains(completedDay) {
+                    return nil
+                }
+
+                return TodoOccurrence(
                     todo: todo,
                     occurrenceDate: CalendarService.mergingDay(completedDay, timeFrom: todo.dueDate),
                     isCompleted: true,

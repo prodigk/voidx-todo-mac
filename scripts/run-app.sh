@@ -12,6 +12,17 @@ WIDGET_APPEX="$APP_BUNDLE/Contents/PlugIns/$WIDGET_NAME.appex"
 
 cd "$ROOT_DIR"
 
+source "$ROOT_DIR/scripts/version.sh"
+
+CURRENT_VERSION="$(current_app_version)"
+if [[ "${VOIDX_SKIP_VERSION_BUMP:-0}" != "1" ]]; then
+    APP_VERSION="$(next_app_version "$CURRENT_VERSION")"
+else
+    APP_VERSION="$CURRENT_VERSION"
+fi
+
+APP_BUILD="$(app_build_number "$APP_VERSION")"
+
 swift build
 scripts/make-app-icon.sh
 
@@ -58,13 +69,13 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
         </dict>
     </array>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
+    <string>$APP_VERSION</string>
     <key>CFBundleSupportedPlatforms</key>
     <array>
         <string>MacOSX</string>
     </array>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$APP_BUILD</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSPrincipalClass</key>
@@ -91,13 +102,13 @@ cat > "$WIDGET_APPEX/Contents/Info.plist" <<PLIST
     <key>CFBundlePackageType</key>
     <string>XPC!</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
+    <string>$APP_VERSION</string>
     <key>CFBundleSupportedPlatforms</key>
     <array>
         <string>MacOSX</string>
     </array>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$APP_BUILD</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSExtension</key>
@@ -115,5 +126,9 @@ PLIST
 
 codesign --force --sign - "$WIDGET_APPEX" >/dev/null
 codesign --force --sign - "$APP_BUNDLE" >/dev/null
+
+if [[ "${VOIDX_SKIP_VERSION_BUMP:-0}" != "1" ]]; then
+    set_app_version "$APP_VERSION"
+fi
 
 open "$APP_BUNDLE"

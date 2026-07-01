@@ -687,28 +687,39 @@ private enum NoteEditorMode: String, CaseIterable, Identifiable {
 
 struct CompletedView: View {
     @EnvironmentObject private var store: TodoStore
+    @State private var focusedMonth = Date()
+
+    private var monthInterval: DateInterval {
+        CalendarService.dateIntervalForMonth(containing: focusedMonth)
+    }
 
     private var completed: [TodoOccurrence] {
-        store.completedOccurrences()
+        store.completedOccurrences(in: monthInterval)
+    }
+
+    private var monthTitle: String {
+        focusedMonth.formatted(.dateTime.year().month(.wide))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SectionTitle(
+                CompletedMonthHeader(
                     title: "Completed",
-                    subtitle: "Recently finished work",
+                    subtitle: monthTitle,
                     count: completed.count,
-                    countLabel: "done"
+                    previousAction: { moveMonth(by: -1) },
+                    currentMonthAction: { focusedMonth = Date() },
+                    nextAction: { moveMonth(by: 1) }
                 )
 
                 if !completed.isEmpty {
-                    CompletedCategoryAnalytics(completed: completed)
+                    CompletedCategoryAnalytics(completed: completed, dateInterval: monthInterval)
                 }
 
                 QuietPanel {
                     if completed.isEmpty {
-                        EmptyStateView(title: "Nothing completed yet", subtitle: "Completed todos will collect here.")
+                        EmptyStateView(title: "Nothing completed this month", subtitle: "Finished todos for \(monthTitle) will collect here.")
                     } else {
                         LazyVStack(spacing: 10) {
                             ForEach(completed) { occurrence in
@@ -727,18 +738,85 @@ struct CompletedView: View {
         }
         .appSurface()
     }
+
+    private func moveMonth(by value: Int) {
+        focusedMonth = CalendarService.calendar.date(byAdding: .month, value: value, to: focusedMonth) ?? focusedMonth
+    }
+}
+
+private struct CompletedMonthHeader: View {
+    let title: String
+    let subtitle: String
+    let count: Int
+    let previousAction: () -> Void
+    let currentMonthAction: () -> Void
+    let nextAction: () -> Void
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("VOIDX TODO")
+                    .font(CohereTheme.monoLabel(11))
+                    .foregroundStyle(CohereTheme.deepGreen)
+                Text(title)
+                    .font(CohereTheme.displayFont(44))
+                    .foregroundStyle(CohereTheme.ink)
+                Text(subtitle)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(CohereTheme.slate)
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                Text("\(count) done")
+                    .font(CohereTheme.monoLabel(12))
+                    .foregroundStyle(CohereTheme.onPrimary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(CohereTheme.primary, in: Capsule())
+
+                Button(action: previousAction) {
+                    Image(systemName: "chevron.left")
+                        .frame(width: 18, height: 18)
+                }
+                .buttonStyle(CohereIconButtonStyle())
+                .help("Previous month")
+
+                Button("This Month", action: currentMonthAction)
+                    .buttonStyle(CoherePrimaryButtonStyle())
+
+                Button(action: nextAction) {
+                    Image(systemName: "chevron.right")
+                        .frame(width: 18, height: 18)
+                }
+                .buttonStyle(CohereIconButtonStyle())
+                .help("Next month")
+            }
+        }
+        .padding(.bottom, 14)
+    }
 }
 
 private struct CompletedCategoryAnalytics: View {
     @EnvironmentObject private var store: TodoStore
 
     let completed: [TodoOccurrence]
+    let dateInterval: DateInterval
 
     private var weekStarts: [Date] {
-        let currentWeekStart = CalendarService.startOfWeek(containing: Date())
-        return (0..<8).reversed().compactMap {
-            CalendarService.calendar.date(byAdding: .weekOfYear, value: -$0, to: currentWeekStart)
+        var starts: [Date] = []
+        var cursor = CalendarService.startOfWeek(containing: dateInterval.start)
+
+        while cursor < dateInterval.end {
+            starts.append(cursor)
+            guard let next = CalendarService.calendar.date(byAdding: .weekOfYear, value: 1, to: cursor) else {
+                break
+            }
+            cursor = next
         }
+
+        return starts
     }
 
     private var insights: [CompletedCategoryInsight] {
@@ -818,7 +896,7 @@ private struct CompletedCategoryAnalytics: View {
                             .font(CohereTheme.monoLabel(10))
                             .foregroundStyle(CohereTheme.slate)
                         Spacer()
-                        Text("Last 8 weeks")
+                        Text("Weeks in month")
                             .font(CohereTheme.monoLabel(10))
                             .foregroundStyle(CohereTheme.slate)
                             .frame(width: 88, alignment: .trailing)
@@ -1364,11 +1442,27 @@ private struct MonthDayCell: View {
         occurrences.filter { !$0.isCompleted }.count
     }
 
+    private var completedCount: Int {
+        occurrences.filter(\.isCompleted).count
+    }
+
+    private var showsCompletionMarker: Bool {
+        !occurrences.isEmpty && day < CalendarService.startOfDay(Date())
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                dateLabel
+                HStack(spacing: 6) {
+                    dateLabel
+
+                    if showsCompletionMarker {
+                        MonthCompletionMarker(completedCount: completedCount, totalCount: occurrences.count)
+                    }
+                }
+
                 Spacer()
+
                 if remainingCount > 0 {
                     Text("\(remainingCount)")
                         .font(CohereTheme.monoLabel(10))
@@ -1456,6 +1550,61 @@ private struct MonthDayCell: View {
         TodoDragPayload.loadTodoID(from: providers) { id in
             store.moveTodo(id: id, toDay: day)
         }
+    }
+}
+
+private struct MonthCompletionMarker: View {
+    let completedCount: Int
+    let totalCount: Int
+
+    private var completionRate: Double {
+        guard totalCount > 0 else { return 0 }
+        return Double(completedCount) / Double(totalCount)
+    }
+
+    var body: some View {
+        ZStack {
+            switch completionState {
+            case .complete:
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(CohereTheme.deepGreen)
+            case .strong:
+                Circle()
+                    .fill(CohereTheme.deepGreen)
+                    .frame(width: 5, height: 5)
+            case .steady:
+                Circle()
+                    .fill(CohereTheme.actionBlue)
+                    .frame(width: 5, height: 5)
+            case .low:
+                Circle()
+                    .fill(CohereTheme.coral)
+                    .frame(width: 5, height: 5)
+            }
+        }
+        .frame(width: 14, height: 14)
+        .help("\(completedCount) of \(totalCount) tasks completed")
+    }
+
+    private var completionState: CompletionState {
+        if completedCount == totalCount {
+            return .complete
+        }
+        if completionRate >= 0.7 {
+            return .strong
+        }
+        if completionRate >= 0.3 {
+            return .steady
+        }
+        return .low
+    }
+
+    private enum CompletionState {
+        case complete
+        case strong
+        case steady
+        case low
     }
 }
 

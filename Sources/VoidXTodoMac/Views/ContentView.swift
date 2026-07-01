@@ -91,10 +91,9 @@ private struct SidebarView: View {
                     .padding(.horizontal, 10)
                     .padding(.bottom, 10)
 
-                DarkProductPanel {
-                    AppVersionPanel()
-                }
-                .padding(10)
+                AppVersionText()
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 14)
             }
         }
         .frame(maxHeight: .infinity)
@@ -147,73 +146,21 @@ private struct SidebarRow: View {
     }
 }
 
-private struct AppVersionPanel: View {
+private struct AppVersionText: View {
     private var versionText: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
 
-        switch (version, build) {
-        case let (version?, build?) where !build.isEmpty:
-            return "v\(version) (\(build))"
-        case let (version?, _):
+        if let version, !version.isEmpty {
             return "v\(version)"
-        case (_, let build?) where !build.isEmpty:
-            return "Build \(build)"
-        default:
-            return "Unknown"
         }
-    }
-
-    private var updatedText: String {
-        guard let date = Self.lastUpdatedDate else {
-            return "Unknown"
-        }
-
-        return date.formatted(
-            .dateTime
-                .year()
-                .month(.twoDigits)
-                .day(.twoDigits)
-                .hour(.twoDigits(amPM: .omitted))
-                .minute(.twoDigits)
-        )
+        return "v1.0"
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            versionRow(label: "VERSION", value: versionText)
-            versionRow(label: "UPDATED", value: updatedText)
-        }
-    }
-
-    private func versionRow(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(label)
-                .font(CohereTheme.monoLabel(10))
-                .foregroundStyle(CohereTheme.onDark.opacity(0.55))
-
-            Text(value)
-                .font(.system(size: 13, weight: .medium, design: label == "VERSION" ? .monospaced : .default))
-                .foregroundStyle(CohereTheme.onDark.opacity(0.86))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-    }
-
-    private static var lastUpdatedDate: Date? {
-        let candidateURLs = [
-            Bundle.main.executableURL,
-            Bundle.main.bundleURL
-        ].compactMap { $0 }
-
-        for url in candidateURLs {
-            if let values = try? url.resourceValues(forKeys: [.contentModificationDateKey]),
-               let date = values.contentModificationDate {
-                return date
-            }
-        }
-
-        return nil
+        Text(versionText)
+            .font(CohereTheme.monoLabel(10))
+            .foregroundStyle(CohereTheme.onDark.opacity(0.38))
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

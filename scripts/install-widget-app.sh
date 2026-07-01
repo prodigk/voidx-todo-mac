@@ -8,7 +8,24 @@ INSTALL_PATH="/Applications/$APP_NAME"
 
 cd "$ROOT_DIR"
 
+source "$ROOT_DIR/scripts/version.sh"
+
+CURRENT_VERSION="$(current_app_version)"
+if [[ "${VOIDX_SKIP_VERSION_BUMP:-0}" != "1" ]]; then
+  APP_VERSION="$(next_app_version "$CURRENT_VERSION")"
+else
+  APP_VERSION="$CURRENT_VERSION"
+fi
+
+APP_BUILD="$(app_build_number "$APP_VERSION")"
+
 xcodegen generate
+
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$ROOT_DIR/Generated/VoidXTodoMac-Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $APP_BUILD" "$ROOT_DIR/Generated/VoidXTodoMac-Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$ROOT_DIR/Generated/VoidXTodoWidget-Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $APP_BUILD" "$ROOT_DIR/Generated/VoidXTodoWidget-Info.plist"
+
 xcodebuild \
   -project "$PROJECT" \
   -scheme VoidXTodoMac \
@@ -33,6 +50,10 @@ rm -rf "$INSTALL_PATH"
 cp -R "$BUILT_APP" "$INSTALL_PATH"
 
 codesign --verify --deep --strict --verbose=2 "$INSTALL_PATH"
+
+if [[ "${VOIDX_SKIP_VERSION_BUMP:-0}" != "1" ]]; then
+  set_app_version "$APP_VERSION"
+fi
 
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
   -f \
