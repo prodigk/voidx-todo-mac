@@ -6,6 +6,7 @@ struct QuickAddTodoView: View {
     @State private var dueDate = Date()
     @State private var priority: TodoPriority = .normal
     @State private var categoryID: UUID?
+    @State private var scheduleScope: TodoScheduleScope = .day
 
     var body: some View {
         QuietPanel {
@@ -40,6 +41,15 @@ struct QuickAddTodoView: View {
                 }
 
                 HStack(spacing: 10) {
+                    Picker("", selection: $scheduleScope) {
+                        ForEach(TodoScheduleScope.allCases) { scope in
+                            Text(scope.label).tag(scope)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 140)
+                    .help("Task type")
+
                     dueControl
 
                     Picker("", selection: $priority) {
@@ -66,13 +76,17 @@ struct QuickAddTodoView: View {
                 .foregroundStyle(CohereTheme.slate)
                 .frame(width: 16)
 
-            Text("Due")
+            Text(scheduleScope == .day ? "Due" : "Week")
                 .font(CohereTheme.monoLabel(11))
                 .foregroundStyle(CohereTheme.slate)
 
             Spacer(minLength: 4)
 
-            DatePicker("", selection: $dueDate, displayedComponents: [.date, .hourAndMinute])
+            DatePicker(
+                "",
+                selection: $dueDate,
+                displayedComponents: scheduleScope == .day ? [.date, .hourAndMinute] : [.date]
+            )
                 .labelsHidden()
         }
         .padding(.horizontal, 12)
@@ -85,8 +99,9 @@ struct QuickAddTodoView: View {
     }
 
     private func add() {
-        store.addTodo(title: title, detail: "", dueDate: dueDate, priority: priority, categoryID: categoryID)
+        store.addTodo(title: title, detail: "", dueDate: dueDate, priority: priority, categoryID: categoryID, scheduleScope: scheduleScope)
         title = ""
         priority = .normal
+        scheduleScope = .day
     }
 }

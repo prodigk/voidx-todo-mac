@@ -20,18 +20,21 @@ final class TodoStore: ObservableObject {
         dueDate: Date,
         priority: TodoPriority,
         categoryID: UUID? = nil,
+        scheduleScope: TodoScheduleScope = .day,
         recurrenceRule: RecurrenceRule? = nil
     ) {
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanTitle.isEmpty else { return }
+        let normalizedScope: TodoScheduleScope = recurrenceRule == nil ? scheduleScope : .day
 
         todos.append(
             TodoItem(
                 title: cleanTitle,
                 detail: detail.trimmingCharacters(in: .whitespacesAndNewlines),
-                dueDate: dueDate,
+                dueDate: normalizedDueDate(dueDate, for: normalizedScope),
                 priority: priority,
                 categoryID: categoryID,
+                scheduleScope: normalizedScope,
                 recurrenceRule: recurrenceRule
             )
         )
@@ -41,6 +44,8 @@ final class TodoStore: ObservableObject {
     func updateTodo(_ todo: TodoItem) {
         guard let index = todos.firstIndex(where: { $0.id == todo.id }) else { return }
         var updated = todo
+        updated.scheduleScope = updated.recurrenceRule == nil ? updated.scheduleScope : .day
+        updated.dueDate = normalizedDueDate(updated.dueDate, for: updated.scheduleScope)
         updated.updatedAt = Date()
         todos[index] = updated
         save()
@@ -144,6 +149,29 @@ final class TodoStore: ObservableObject {
             .sorted(by: occurrenceSort)
     }
 
+    func weeklyTodos(in weekContaining: Date, includeCompleted: Bool = false) -> [TodoOccurrence] {
+        let weekStart = CalendarService.startOfWeek(containing: weekContaining)
+        let weekEnd = CalendarService.calendar.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
+
+        return todos
+            .filter { todo in
+                todo.recurrenceRule == nil &&
+                todo.scheduleScope == .week &&
+                todo.dueDate >= weekStart &&
+                todo.dueDate < weekEnd &&
+                (includeCompleted || !todo.isCompleted)
+            }
+            .map {
+                TodoOccurrence(
+                    todo: $0,
+                    occurrenceDate: $0.dueDate,
+                    isCompleted: $0.isCompleted,
+                    completedAt: $0.completedAt
+                )
+            }
+            .sorted(by: occurrenceSort)
+    }
+
     func remainingCount(on day: Date) -> Int {
         occurrences(on: day).count
     }
@@ -213,6 +241,15 @@ final class TodoStore: ObservableObject {
         case .low: 0
         case .normal: 1
         case .high: 2
+        }
+    }
+
+    private func normalizedDueDate(_ dueDate: Date, for scheduleScope: TodoScheduleScope) -> Date {
+        switch scheduleScope {
+        case .day:
+            return dueDate
+        case .week:
+            return CalendarService.startOfWeek(containing: dueDate)
         }
     }
 

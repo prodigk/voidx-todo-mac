@@ -84,6 +84,7 @@ struct WeekView: View {
     @State private var focusedDate = Date()
     @State private var editorTodo: TodoItem?
     @State private var editorDueDate = Date()
+    @State private var editorScheduleScope: TodoScheduleScope = .day
     @State private var isEditorPresented = false
 
     private var days: [Date] {
@@ -105,13 +106,24 @@ struct WeekView: View {
                 nextAction: { moveWeek(by: 1) }
             )
 
-            WeekCalendarGrid(days: days, onAddTodo: addTodo)
-                .frame(maxHeight: .infinity)
+            GeometryReader { proxy in
+                VStack(spacing: 14) {
+                    WeekCalendarGrid(days: days, onAddTodo: addTodo)
+                        .frame(height: max(220, proxy.size.height * 0.56))
+
+                    WeeklyTaskLane(
+                        weekStart: CalendarService.startOfWeek(containing: focusedDate),
+                        onAddTodo: addWeeklyTodo,
+                        onEditTodo: editTodo
+                    )
+                    .frame(maxHeight: .infinity)
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .appSurface()
         .sheet(isPresented: $isEditorPresented) {
-            TodoEditorSheet(todo: editorTodo, defaultDueDate: editorDueDate)
+            TodoEditorSheet(todo: editorTodo, defaultDueDate: editorDueDate, defaultScheduleScope: editorScheduleScope)
                 .environmentObject(store)
         }
     }
@@ -123,6 +135,21 @@ struct WeekView: View {
     private func addTodo(on day: Date) {
         editorTodo = nil
         editorDueDate = CalendarService.mergingDay(day, timeFrom: Date())
+        editorScheduleScope = .day
+        isEditorPresented = true
+    }
+
+    private func addWeeklyTodo() {
+        editorTodo = nil
+        editorDueDate = CalendarService.startOfWeek(containing: focusedDate)
+        editorScheduleScope = .week
+        isEditorPresented = true
+    }
+
+    private func editTodo(_ todo: TodoItem) {
+        editorTodo = todo
+        editorDueDate = todo.dueDate
+        editorScheduleScope = todo.scheduleScope
         isEditorPresented = true
     }
 }
@@ -177,6 +204,7 @@ struct MonthView: View {
 struct RecurringView: View {
     @EnvironmentObject private var store: TodoStore
 
+    @State private var editingTodoID: UUID?
     @State private var title = ""
     @State private var detail = ""
     @State private var dueDate = Date()
@@ -220,10 +248,10 @@ struct RecurringView: View {
         QuietPanel {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("New Routine")
+                    Text(isEditingRoutine ? "Edit Routine" : "New Routine")
                         .font(CohereTheme.monoLabel())
                         .foregroundStyle(CohereTheme.deepGreen)
-                    Text("Name the routine first, then tune the schedule.")
+                    Text(formSubtitle)
                         .font(.system(size: 12))
                         .foregroundStyle(CohereTheme.slate)
                 }
@@ -239,15 +267,25 @@ struct RecurringView: View {
                             RoundedRectangle(cornerRadius: CohereTheme.panelRadius)
                                 .stroke(CohereTheme.hairline, lineWidth: 1)
                         }
-                        .onSubmit(addRecurringTodo)
+                        .onSubmit(saveRecurringTodo)
 
                     Button {
-                        addRecurringTodo()
+                        saveRecurringTodo()
                     } label: {
-                        Label("Add", systemImage: "plus")
+                        Label(primaryFormActionTitle, systemImage: primaryFormActionIcon)
                     }
                     .buttonStyle(CoherePrimaryButtonStyle())
-                    .disabled(!canAddRecurringTodo)
+                    .disabled(!canSaveRecurringTodo)
+
+                    if isEditingRoutine {
+                        Button {
+                            resetRecurringForm()
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                        .buttonStyle(CohereIconButtonStyle())
+                        .help("Cancel edit")
+                    }
                 }
 
                 TextField("Optional description", text: $detail, axis: .vertical)
@@ -357,36 +395,97 @@ struct RecurringView: View {
                     )
                 } else {
                     VStack(alignment: .leading, spacing: 16) {
-                        RoutineGroup(title: "Daily Routine", todos: routines(of: .daily))
-                        RoutineGroup(title: "Weekly Routine", todos: routines(of: .weekly))
-                        RoutineGroup(title: "Monthly Routine", todos: routines(of: .monthly))
+                        RoutineGroup(title: "Daily Routine", todos: routines(of: .daily), onEdit: beginEditing)
+                        RoutineGroup(title: "Weekly Routine", todos: routines(of: .weekly), onEdit: beginEditing)
+                        RoutineGroup(title: "Monthly Routine", todos: routines(of: .monthly), onEdit: beginEditing)
                     }
                 }
             }
         }
     }
 
-    private var canAddRecurringTodo: Bool {
+    private var isEditingRoutine: Bool {
+        editingTodoID != nil
+    }
+
+    private var formSubtitle: String {
+        isEditingRoutine ? "Update the routine details and schedule." : "Name the routine first, then tune the schedule."
+    }
+
+    private var primaryFormActionTitle: String {
+        isEditingRoutine ? "Save" : "Add"
+    }
+
+    private var primaryFormActionIcon: String {
+        isEditingRoutine ? "checkmark" : "plus"
+    }
+
+    private var canSaveRecurringTodo: Bool {
         let hasTitle = !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasWeeklySelection = recurrenceType != .weekly || !selectedWeekdays.isEmpty
         return hasTitle && hasWeeklySelection
     }
 
-    private func addRecurringTodo() {
+    private func saveRecurringTodo() {
+        guard canSaveRecurringTodo else { return }
         let clippedDay = CalendarService.clippedDayOfMonth(dayOfMonth, in: startDate)
+        let existingTodo = editingTodoID.flatMap { id in store.todos.first { $0.id == id } }
+        let existingRule = existingTodo?.recurrenceRule
         let rule = RecurrenceRule(
+            id: existingRule?.id ?? UUID(),
             type: recurrenceType,
             weekdays: recurrenceType == .weekly ? selectedWeekdays.sorted() : [],
             dayOfMonth: recurrenceType == .monthly ? clippedDay : nil,
             startDate: startDate,
             endDate: hasEndDate ? endDate : nil,
-            isActive: true
+            isActive: existingRule?.isActive ?? true
         )
         let firstDueDate = CalendarService.mergingDay(startDate, timeFrom: dueDate)
-        store.addTodo(title: title, detail: detail, dueDate: firstDueDate, priority: priority, categoryID: categoryID, recurrenceRule: rule)
+
+        if var existingTodo {
+            existingTodo.title = title
+            existingTodo.detail = detail.trimmingCharacters(in: .whitespacesAndNewlines)
+            existingTodo.dueDate = firstDueDate
+            existingTodo.priority = priority
+            existingTodo.categoryID = categoryID
+            existingTodo.recurrenceRule = rule
+            store.updateTodo(existingTodo)
+        } else {
+            store.addTodo(title: title, detail: detail, dueDate: firstDueDate, priority: priority, categoryID: categoryID, recurrenceRule: rule)
+        }
+
+        resetRecurringForm()
+    }
+
+    private func beginEditing(_ todo: TodoItem) {
+        guard let rule = todo.recurrenceRule else { return }
+        editingTodoID = todo.id
+        title = todo.title
+        detail = todo.detail
+        dueDate = todo.dueDate
+        priority = todo.priority
+        categoryID = todo.categoryID
+        recurrenceType = rule.type
+        selectedWeekdays = Set(rule.weekdays.isEmpty ? [CalendarService.calendar.component(.weekday, from: rule.startDate)] : rule.weekdays)
+        dayOfMonth = rule.dayOfMonth ?? CalendarService.calendar.component(.day, from: rule.startDate)
+        startDate = rule.startDate
+        hasEndDate = rule.endDate != nil
+        endDate = rule.endDate ?? Date()
+    }
+
+    private func resetRecurringForm() {
+        editingTodoID = nil
         title = ""
         detail = ""
+        dueDate = Date()
         priority = .normal
+        categoryID = nil
+        recurrenceType = .daily
+        selectedWeekdays = [CalendarService.calendar.component(.weekday, from: Date())]
+        dayOfMonth = CalendarService.calendar.component(.day, from: Date())
+        startDate = Date()
+        hasEndDate = false
+        endDate = Date()
     }
 
     private func routines(of type: RecurrenceType) -> [TodoItem] {
@@ -942,6 +1041,150 @@ private struct WeekCalendarGrid: View {
     }
 }
 
+private struct WeeklyTaskLane: View {
+    @EnvironmentObject private var store: TodoStore
+
+    let weekStart: Date
+    let onAddTodo: () -> Void
+    let onEditTodo: (TodoItem) -> Void
+
+    private var weekTasks: [TodoOccurrence] {
+        store.weeklyTodos(in: weekStart, includeCompleted: true)
+    }
+
+    private var remainingCount: Int {
+        weekTasks.filter { !$0.isCompleted }.count
+    }
+
+    private var weekRangeText: String {
+        let weekEnd = CalendarService.calendar.date(byAdding: .day, value: 6, to: weekStart) ?? weekStart
+        return "\(weekStart.formatted(date: .abbreviated, time: .omitted)) - \(weekEnd.formatted(date: .abbreviated, time: .omitted))"
+    }
+
+    var body: some View {
+        QuietPanel {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Text("Week Tasks")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(CohereTheme.ink)
+
+                            Text("\(remainingCount)")
+                                .font(CohereTheme.monoLabel(10))
+                                .foregroundStyle(CohereTheme.deepGreen)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(CohereTheme.paleGreen, in: Capsule())
+                        }
+
+                        Text(weekRangeText)
+                            .font(.system(size: 12, weight: .regular, design: .monospaced))
+                            .foregroundStyle(CohereTheme.slate)
+                    }
+
+                    Spacer()
+
+                    Button(action: onAddTodo) {
+                        Label("Add", systemImage: "plus")
+                    }
+                    .buttonStyle(CoherePrimaryButtonStyle())
+                    .help("New week task")
+                }
+
+                if weekTasks.isEmpty {
+                    EmptyStateView(
+                        title: "No week tasks",
+                        subtitle: "Capture work that only needs to land sometime this week."
+                    )
+                    .frame(maxWidth: .infinity, minHeight: 86)
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 8) {
+                            ForEach(weekTasks) { occurrence in
+                                WeeklyTaskRow(
+                                    occurrence: occurrence,
+                                    onToggle: { store.toggleCompletion(occurrence) },
+                                    onEdit: { onEditTodo(occurrence.todo) },
+                                    onDelete: { store.deleteTodo(id: occurrence.todo.id) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct WeeklyTaskRow: View {
+    @EnvironmentObject private var store: TodoStore
+
+    let occurrence: TodoOccurrence
+    let onToggle: () -> Void
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Button(action: onToggle) {
+                Image(systemName: occurrence.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(occurrence.isCompleted ? CohereTheme.deepGreen : CohereTheme.slate)
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(.plain)
+            .help(occurrence.isCompleted ? "Mark incomplete" : "Mark complete")
+
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 7) {
+                    PriorityDot(priority: occurrence.todo.priority)
+
+                    Text(occurrence.todo.title)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(CohereTheme.ink)
+                        .lineLimit(1)
+                        .strikethrough(occurrence.isCompleted)
+
+                    if let category = store.category(for: occurrence.todo.categoryID) {
+                        CategoryChip(category: category, compact: true)
+                    }
+                }
+
+                if !occurrence.todo.detail.isEmpty {
+                    Text(occurrence.todo.detail)
+                        .font(.system(size: 12))
+                        .foregroundStyle(CohereTheme.slate)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
+            }
+            .buttonStyle(CohereIconButtonStyle())
+            .help("Edit")
+
+            Button(role: .destructive, action: onDelete) {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(CohereIconButtonStyle(foreground: CohereTheme.coral))
+            .help("Delete")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(CohereTheme.controlSurface, in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: CohereTheme.compactRadius)
+                .stroke(CohereTheme.hairline, lineWidth: 1)
+        }
+        .opacity(occurrence.isCompleted ? 0.48 : 1)
+    }
+}
+
 private struct WeekDayColumn: View {
     @EnvironmentObject private var store: TodoStore
     let day: Date
@@ -978,7 +1221,7 @@ private struct WeekDayColumn: View {
                     .foregroundStyle(CohereTheme.muted)
                     .frame(maxWidth: .infinity, minHeight: 36, alignment: .topLeading)
             } else {
-                ForEach(occurrences.prefix(10)) { occurrence in
+                ForEach(occurrences.prefix(5)) { occurrence in
                     MonthOccurrencePill(occurrence: occurrence, isInFocusedMonth: true)
                         .contextMenu {
                             Button(occurrence.isCompleted ? "Mark incomplete" : "Mark complete") {
@@ -990,8 +1233,8 @@ private struct WeekDayColumn: View {
                         }
                 }
 
-                if occurrences.count > 10 {
-                    Text("+\(occurrences.count - 10) more")
+                if occurrences.count > 5 {
+                    Text("+\(occurrences.count - 5) more")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(CohereTheme.deepGreen)
                         .padding(.leading, 2)
@@ -1358,6 +1601,7 @@ private enum TodoDragPayload {
 private struct RecurringTodoRow: View {
     @EnvironmentObject private var store: TodoStore
     let todo: TodoItem
+    let onEdit: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -1401,6 +1645,12 @@ private struct RecurringTodoRow: View {
             )
             .labelsHidden()
             .help("Toggle active")
+
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
+            }
+            .buttonStyle(CohereIconButtonStyle())
+            .help("Edit")
 
             Button(role: .destructive) {
                 store.deleteTodo(id: todo.id)
@@ -1450,6 +1700,7 @@ private struct RecurringTodoRow: View {
 private struct RoutineGroup: View {
     let title: String
     let todos: [TodoItem]
+    let onEdit: (TodoItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -1468,7 +1719,7 @@ private struct RoutineGroup: View {
             } else {
                 LazyVStack(spacing: 10) {
                     ForEach(todos) { todo in
-                        RecurringTodoRow(todo: todo)
+                        RecurringTodoRow(todo: todo, onEdit: { onEdit(todo) })
                     }
                 }
             }

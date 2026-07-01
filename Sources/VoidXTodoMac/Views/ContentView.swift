@@ -92,15 +92,7 @@ private struct SidebarView: View {
                     .padding(.bottom, 10)
 
                 DarkProductPanel {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("LOCAL ONLY")
-                            .font(CohereTheme.monoLabel(11))
-                            .foregroundStyle(CohereTheme.onDark.opacity(0.55))
-                        Text("Your routines stay on this Mac.")
-                            .font(.system(size: 13))
-                            .foregroundStyle(CohereTheme.onDark.opacity(0.86))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    AppVersionPanel()
                 }
                 .padding(10)
             }
@@ -152,6 +144,76 @@ private struct SidebarRow: View {
             return CohereTheme.sidebarSelection
         }
         return isHovering ? CohereTheme.onDark.opacity(0.12) : Color.clear
+    }
+}
+
+private struct AppVersionPanel: View {
+    private var versionText: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+
+        switch (version, build) {
+        case let (version?, build?) where !build.isEmpty:
+            return "v\(version) (\(build))"
+        case let (version?, _):
+            return "v\(version)"
+        case (_, let build?) where !build.isEmpty:
+            return "Build \(build)"
+        default:
+            return "Unknown"
+        }
+    }
+
+    private var updatedText: String {
+        guard let date = Self.lastUpdatedDate else {
+            return "Unknown"
+        }
+
+        return date.formatted(
+            .dateTime
+                .year()
+                .month(.twoDigits)
+                .day(.twoDigits)
+                .hour(.twoDigits(amPM: .omitted))
+                .minute(.twoDigits)
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            versionRow(label: "VERSION", value: versionText)
+            versionRow(label: "UPDATED", value: updatedText)
+        }
+    }
+
+    private func versionRow(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(CohereTheme.monoLabel(10))
+                .foregroundStyle(CohereTheme.onDark.opacity(0.55))
+
+            Text(value)
+                .font(.system(size: 13, weight: .medium, design: label == "VERSION" ? .monospaced : .default))
+                .foregroundStyle(CohereTheme.onDark.opacity(0.86))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+    }
+
+    private static var lastUpdatedDate: Date? {
+        let candidateURLs = [
+            Bundle.main.executableURL,
+            Bundle.main.bundleURL
+        ].compactMap { $0 }
+
+        for url in candidateURLs {
+            if let values = try? url.resourceValues(forKeys: [.contentModificationDateKey]),
+               let date = values.contentModificationDate {
+                return date
+            }
+        }
+
+        return nil
     }
 }
 

@@ -2,6 +2,8 @@ import Foundation
 
 enum RecurrenceService {
     static func occurrence(for todo: TodoItem, on day: Date) -> TodoOccurrence? {
+        guard todo.scheduleScope == .day else { return nil }
+
         if let rule = todo.recurrenceRule {
             guard matches(rule: rule, on: day) else { return nil }
             let occurrenceDate = CalendarService.mergingDay(day, timeFrom: todo.dueDate)

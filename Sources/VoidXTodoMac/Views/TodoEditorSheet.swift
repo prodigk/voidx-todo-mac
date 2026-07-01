@@ -11,14 +11,16 @@ struct TodoEditorSheet: View {
     @State private var dueDate: Date
     @State private var priority: TodoPriority
     @State private var categoryID: UUID?
+    @State private var scheduleScope: TodoScheduleScope
 
-    init(todo: TodoItem?, defaultDueDate: Date = Date()) {
+    init(todo: TodoItem?, defaultDueDate: Date = Date(), defaultScheduleScope: TodoScheduleScope = .day) {
         self.todo = todo
         _title = State(initialValue: todo?.title ?? "")
         _detail = State(initialValue: todo?.detail ?? "")
         _dueDate = State(initialValue: todo?.dueDate ?? defaultDueDate)
         _priority = State(initialValue: todo?.priority ?? .normal)
         _categoryID = State(initialValue: todo?.categoryID)
+        _scheduleScope = State(initialValue: todo?.scheduleScope ?? defaultScheduleScope)
     }
 
     var body: some View {
@@ -34,14 +36,21 @@ struct TodoEditorSheet: View {
                 .lineLimit(3...5)
                 .cohereField()
 
-            DatePicker("Due", selection: $dueDate)
-                .font(.system(size: 13))
-                .padding(12)
-                .background(CohereTheme.controlSurface, in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
-                .overlay {
-                    RoundedRectangle(cornerRadius: CohereTheme.compactRadius)
-                        .stroke(CohereTheme.hairline, lineWidth: 1)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Type")
+                    .font(CohereTheme.monoLabel(11))
+                    .foregroundStyle(CohereTheme.slate)
+
+                Picker("Type", selection: $scheduleScope) {
+                    ForEach(TodoScheduleScope.allCases) { scope in
+                        Text(scope.label).tag(scope)
+                    }
                 }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+            }
+
+            duePicker
 
             Picker("Priority", selection: $priority) {
                 ForEach(TodoPriority.allCases) { priority in
@@ -72,6 +81,21 @@ struct TodoEditorSheet: View {
         .background(CohereTheme.panelSurface)
     }
 
+    private var duePicker: some View {
+        DatePicker(
+            scheduleScope == .day ? "Due" : "Week",
+            selection: $dueDate,
+            displayedComponents: scheduleScope == .day ? [.date, .hourAndMinute] : [.date]
+        )
+        .font(.system(size: 13))
+        .padding(12)
+        .background(CohereTheme.controlSurface, in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: CohereTheme.compactRadius)
+                .stroke(CohereTheme.hairline, lineWidth: 1)
+        }
+    }
+
     private func save() {
         if var todo {
             todo.title = title
@@ -79,9 +103,10 @@ struct TodoEditorSheet: View {
             todo.dueDate = dueDate
             todo.priority = priority
             todo.categoryID = categoryID
+            todo.scheduleScope = scheduleScope
             store.updateTodo(todo)
         } else {
-            store.addTodo(title: title, detail: detail, dueDate: dueDate, priority: priority, categoryID: categoryID)
+            store.addTodo(title: title, detail: detail, dueDate: dueDate, priority: priority, categoryID: categoryID, scheduleScope: scheduleScope)
         }
         dismiss()
     }
