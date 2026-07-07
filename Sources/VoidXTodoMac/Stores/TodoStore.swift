@@ -10,7 +10,10 @@ final class TodoStore: ObservableObject {
     @Published private(set) var categories: [TodoCategory] = []
     @Published var lastError: String?
 
-    init() {
+    private let repository: AppDataRepository
+
+    init(repository: AppDataRepository = LocalAppDataRepository()) {
+        self.repository = repository
         load()
     }
 
@@ -172,6 +175,29 @@ final class TodoStore: ObservableObject {
             .sorted(by: occurrenceSort)
     }
 
+    func scheduledOccurrences(in dateInterval: DateInterval, includeCompleted: Bool = false) -> [TodoOccurrence] {
+        let dailyOccurrences = occurrences(from: dateInterval.start, to: dateInterval.end, includeCompleted: true)
+        let weeklyOccurrences = todos
+            .filter { todo in
+                todo.recurrenceRule == nil &&
+                todo.scheduleScope == .week &&
+                todo.dueDate >= dateInterval.start &&
+                todo.dueDate < dateInterval.end
+            }
+            .map {
+                TodoOccurrence(
+                    todo: $0,
+                    occurrenceDate: $0.dueDate,
+                    isCompleted: $0.isCompleted,
+                    completedAt: $0.completedAt
+                )
+            }
+
+        return (dailyOccurrences + weeklyOccurrences)
+            .filter { includeCompleted || !$0.isCompleted }
+            .sorted(by: occurrenceSort)
+    }
+
     func remainingCount(on day: Date) -> Int {
         occurrences(on: day).count
     }
@@ -264,7 +290,7 @@ final class TodoStore: ObservableObject {
 
     private func load() {
         do {
-            if let data = try PersistenceService.load() {
+            if let data = try repository.load() {
                 todos = data.todos
                 notes = data.notes
                 categories = data.categories
@@ -280,7 +306,7 @@ final class TodoStore: ObservableObject {
 
     private func save() {
         do {
-            try PersistenceService.save(AppData(todos: todos, notes: notes, categories: categories))
+            try repository.save(AppData(todos: todos, notes: notes, categories: categories))
             lastError = nil
             reloadWidgets()
         } catch {

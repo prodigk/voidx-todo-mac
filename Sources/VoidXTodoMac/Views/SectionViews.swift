@@ -697,6 +697,18 @@ struct CompletedView: View {
         store.completedOccurrences(in: monthInterval)
     }
 
+    private var measuredInterval: DateInterval? {
+        let todayStart = CalendarService.startOfDay(Date())
+        let measurementEnd = min(monthInterval.end, todayStart)
+        guard monthInterval.start < measurementEnd else { return nil }
+        return DateInterval(start: monthInterval.start, end: measurementEnd)
+    }
+
+    private var measuredOccurrences: [TodoOccurrence] {
+        guard let measuredInterval else { return [] }
+        return store.scheduledOccurrences(in: measuredInterval, includeCompleted: true)
+    }
+
     private var monthTitle: String {
         focusedMonth.formatted(.dateTime.year().month(.wide))
     }
@@ -713,8 +725,10 @@ struct CompletedView: View {
                     nextAction: { moveMonth(by: 1) }
                 )
 
-                if !completed.isEmpty {
-                    CompletedCategoryAnalytics(completed: completed, dateInterval: monthInterval)
+                if !completed.isEmpty || !measuredOccurrences.isEmpty {
+                    CompletedCategoryAnalytics(
+                        measuredOccurrences: measuredOccurrences
+                    )
                 }
 
                 QuietPanel {
@@ -801,67 +815,55 @@ private struct CompletedMonthHeader: View {
 private struct CompletedCategoryAnalytics: View {
     @EnvironmentObject private var store: TodoStore
 
-    let completed: [TodoOccurrence]
-    let dateInterval: DateInterval
+    let measuredOccurrences: [TodoOccurrence]
 
-    private var weekStarts: [Date] {
-        var starts: [Date] = []
-        var cursor = CalendarService.startOfWeek(containing: dateInterval.start)
-
-        while cursor < dateInterval.end {
-            starts.append(cursor)
-            guard let next = CalendarService.calendar.date(byAdding: .weekOfYear, value: 1, to: cursor) else {
-                break
-            }
-            cursor = next
-        }
-
-        return starts
-    }
-
-    private var insights: [CompletedCategoryInsight] {
+    private var adherenceInsights: [CompletedCategoryAdherenceInsight] {
         var grouped: [String: [TodoOccurrence]] = [:]
 
-        for occurrence in completed {
-            let key = occurrence.todo.categoryID?.uuidString ?? CompletedCategoryInsight.uncategorizedID
+        for occurrence in measuredOccurrences {
+            let key = occurrence.todo.categoryID?.uuidString ?? CompletedCategoryAdherenceInsight.uncategorizedID
             grouped[key, default: []].append(occurrence)
         }
 
         return grouped.map { key, occurrences in
             let categoryID = occurrences.first?.todo.categoryID
             let category = categoryID.flatMap { store.category(for: $0) }
-            let latestDate = occurrences.map(completionDate).max() ?? Date()
-            let weeklyCounts = weekStarts.map { weekStart in
-                let weekEnd = CalendarService.calendar.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
-                return occurrences.filter {
-                    let date = completionDate(for: $0)
-                    return date >= weekStart && date < weekEnd
-                }.count
-            }
+            let completedCount = occurrences.filter(\.isCompleted).count
+            let missedOccurrences = occurrences.filter { !$0.isCompleted }
+            let latestMissedDate = missedOccurrences.map(\.occurrenceDate).max()
 
-            return CompletedCategoryInsight(
+            return CompletedCategoryAdherenceInsight(
                 id: key,
                 title: category?.name ?? (categoryID == nil ? "No category" : "Archived tag"),
                 category: category,
-                count: occurrences.count,
-                latestDate: latestDate,
-                weeklyCounts: weeklyCounts
+                completedCount: completedCount,
+                missedCount: missedOccurrences.count,
+                totalCount: occurrences.count,
+                latestMissedDate: latestMissedDate
             )
         }
         .sorted {
-            if $0.count != $1.count {
-                return $0.count > $1.count
+            if $0.completionRate != $1.completionRate {
+                return $0.completionRate < $1.completionRate
+            }
+            if $0.totalCount != $1.totalCount {
+                return $0.totalCount > $1.totalCount
             }
             return $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
         }
     }
 
-    private var maxWeeklyCount: Int {
-        max(insights.flatMap(\.weeklyCounts).max() ?? 0, 1)
+    private var measuredCount: Int {
+        measuredOccurrences.count
     }
 
-    private var totalCount: Int {
-        completed.count
+    private var measuredCompletedCount: Int {
+        measuredOccurrences.filter(\.isCompleted).count
+    }
+
+    private var measuredCompletionRate: Double {
+        guard measuredCount > 0 else { return 0 }
+        return Double(measuredCompletedCount) / Double(measuredCount)
     }
 
     var body: some View {
@@ -869,17 +871,17 @@ private struct CompletedCategoryAnalytics: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Completion by Tag")
+                        Text("Follow-through by Tag")
                             .font(CohereTheme.monoLabel())
                             .foregroundStyle(CohereTheme.deepGreen)
-                        Text("Which areas are getting finished over time")
+                        Text("Past dates only, unfinished tasks included")
                             .font(.system(size: 12))
                             .foregroundStyle(CohereTheme.slate)
                     }
 
                     Spacer()
 
-                    Text("\(totalCount) done")
+                    Text("\(measuredCompletedCount)/\(measuredCount) · \(Int((measuredCompletionRate * 100).rounded()))%")
                         .font(CohereTheme.monoLabel(12))
                         .foregroundStyle(CohereTheme.ink)
                         .padding(.horizontal, 10)
@@ -887,114 +889,96 @@ private struct CompletedCategoryAnalytics: View {
                         .background(CohereTheme.softStone.opacity(0.56), in: Capsule())
                 }
 
-                CompletedCategoryStackedBar(insights: insights, totalCount: totalCount)
-                    .frame(height: 16)
+                if !adherenceInsights.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Text("Tag")
+                                .font(CohereTheme.monoLabel(10))
+                                .foregroundStyle(CohereTheme.slate)
+                            Spacer()
+                            Text("Done / total")
+                                .font(CohereTheme.monoLabel(10))
+                                .foregroundStyle(CohereTheme.slate)
+                                .frame(width: 82, alignment: .trailing)
+                        }
 
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("Tag")
-                            .font(CohereTheme.monoLabel(10))
-                            .foregroundStyle(CohereTheme.slate)
-                        Spacer()
-                        Text("Weeks in month")
-                            .font(CohereTheme.monoLabel(10))
-                            .foregroundStyle(CohereTheme.slate)
-                            .frame(width: 88, alignment: .trailing)
+                        ForEach(adherenceInsights) { insight in
+                            CompletedCategoryAdherenceRow(insight: insight)
+                        }
                     }
-
-                    ForEach(insights) { insight in
-                        CompletedCategoryInsightRow(
-                            insight: insight,
-                            totalCount: totalCount,
-                            maxWeeklyCount: maxWeeklyCount
-                        )
-                    }
+                } else {
+                    EmptyStateView(
+                        title: "No past tasks to measure",
+                        subtitle: "This month has no scheduled tasks before today yet."
+                    )
                 }
             }
         }
     }
-
-    private func completionDate(for occurrence: TodoOccurrence) -> Date {
-        occurrence.completedAt ?? occurrence.occurrenceDate
-    }
 }
 
-private struct CompletedCategoryInsight: Identifiable {
+private struct CompletedCategoryAdherenceInsight: Identifiable {
     static let uncategorizedID = "uncategorized"
 
     let id: String
     let title: String
     let category: TodoCategory?
-    let count: Int
-    let latestDate: Date
-    let weeklyCounts: [Int]
-}
-
-private struct CompletedCategoryStackedBar: View {
-    let insights: [CompletedCategoryInsight]
+    let completedCount: Int
+    let missedCount: Int
     let totalCount: Int
+    let latestMissedDate: Date?
 
-    var body: some View {
-        GeometryReader { proxy in
-            HStack(spacing: 2) {
-                ForEach(insights) { insight in
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(color(for: insight))
-                        .frame(width: max(4, proxy.size.width * CGFloat(insight.count) / CGFloat(max(totalCount, 1))))
-                        .help("\(insight.title): \(insight.count)")
-                }
-            }
-        }
-        .background(CohereTheme.softStone.opacity(0.42), in: RoundedRectangle(cornerRadius: 5))
-        .clipShape(RoundedRectangle(cornerRadius: 5))
-    }
-
-    private func color(for insight: CompletedCategoryInsight) -> Color {
-        insight.category.map { CategoryVisuals.base(for: $0) } ?? CohereTheme.slate
+    var completionRate: Double {
+        guard totalCount > 0 else { return 0 }
+        return Double(completedCount) / Double(totalCount)
     }
 }
 
-private struct CompletedCategoryInsightRow: View {
-    let insight: CompletedCategoryInsight
-    let totalCount: Int
-    let maxWeeklyCount: Int
+private struct CompletedCategoryAdherenceRow: View {
+    let insight: CompletedCategoryAdherenceInsight
 
-    private var ratio: CGFloat {
-        CGFloat(insight.count) / CGFloat(max(totalCount, 1))
+    private var rateText: String {
+        "\(Int((insight.completionRate * 100).rounded()))%"
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 10) {
                 tagLabel
 
                 Spacer(minLength: 10)
 
-                Text("\(insight.count)")
-                    .font(.system(size: 18, weight: .semibold))
+                Text("\(insight.completedCount)/\(insight.totalCount)")
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(CohereTheme.ink)
-                    .frame(width: 34, alignment: .trailing)
+                    .frame(width: 46, alignment: .trailing)
 
-                Text("\(Int((ratio * 100).rounded()))%")
+                Text(rateText)
                     .font(CohereTheme.monoLabel(10))
-                    .foregroundStyle(CohereTheme.slate)
-                    .frame(width: 38, alignment: .trailing)
-
-                weeklyTrend
-                    .frame(width: 88, height: 30, alignment: .trailing)
+                    .foregroundStyle(rateColor)
+                    .frame(width: 36, alignment: .trailing)
             }
 
             GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(CohereTheme.softStone.opacity(0.56))
+                let segmentGap: CGFloat = insight.completedCount > 0 && insight.missedCount > 0 ? 2 : 0
+                let availableWidth = max(0, proxy.size.width - segmentGap)
 
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(baseColor)
-                        .frame(width: max(6, proxy.size.width * ratio))
+                HStack(spacing: 2) {
+                    if insight.completedCount > 0 {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(baseColor)
+                            .frame(width: availableWidth * CGFloat(insight.completionRate))
+                    }
+
+                    if insight.missedCount > 0 {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(CohereTheme.coral.opacity(0.82))
+                            .frame(width: availableWidth * CGFloat(1 - insight.completionRate))
+                    }
                 }
             }
-            .frame(height: 8)
+            .frame(height: 9)
+            .background(CohereTheme.softStone.opacity(0.58), in: RoundedRectangle(cornerRadius: 4))
         }
         .padding(10)
         .background(fillColor.opacity(0.74), in: RoundedRectangle(cornerRadius: CohereTheme.compactRadius))
@@ -1002,6 +986,7 @@ private struct CompletedCategoryInsightRow: View {
             RoundedRectangle(cornerRadius: CohereTheme.compactRadius)
                 .stroke(baseColor.opacity(0.18), lineWidth: 1)
         }
+        .help("\(insight.title): \(insight.completedCount) done, \(insight.missedCount) missed")
     }
 
     private var tagLabel: some View {
@@ -1021,25 +1006,27 @@ private struct CompletedCategoryInsightRow: View {
                     .foregroundStyle(foregroundColor)
                     .lineLimit(1)
 
-                Text("Last \(insight.latestDate.formatted(date: .abbreviated, time: .omitted))")
+                Text(missedSummary)
                     .font(CohereTheme.monoLabel(9))
                     .foregroundStyle(CohereTheme.slate)
             }
         }
     }
 
-    private var weeklyTrend: some View {
-        HStack(alignment: .bottom, spacing: 3) {
-            ForEach(Array(insight.weeklyCounts.enumerated()), id: \.offset) { _, count in
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(count == 0 ? CohereTheme.hairline.opacity(0.7) : baseColor)
-                    .frame(
-                        width: 8,
-                        height: count == 0 ? 3 : max(5, CGFloat(count) / CGFloat(maxWeeklyCount) * 28)
-                    )
-                    .help("\(count) completed")
-            }
+    private var missedSummary: String {
+        guard insight.missedCount > 0 else { return "No missed tasks" }
+        guard let latestMissedDate = insight.latestMissedDate else { return "\(insight.missedCount) missed" }
+        return "\(insight.missedCount) missed, last \(latestMissedDate.formatted(date: .abbreviated, time: .omitted))"
+    }
+
+    private var rateColor: Color {
+        if insight.completionRate >= 0.7 {
+            return CohereTheme.deepGreen
         }
+        if insight.completionRate >= 0.3 {
+            return CohereTheme.actionBlue
+        }
+        return CohereTheme.coral
     }
 
     private var baseColor: Color {

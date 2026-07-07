@@ -22,6 +22,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.voidx.todo.mac
+        CODE_SIGN_ENTITLEMENTS: Entitlements/VoidXTodoMac.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: VoidX Todo
         INFOPLIST_KEY_CFBundleIconFile: AppIcon
         INFOPLIST_KEY_CFBundleURLTypes:
@@ -48,6 +49,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.voidx.todo.mac.widget
+        CODE_SIGN_ENTITLEMENTS: Entitlements/VoidXTodoWidget.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: VoidX Today
     info:
       path: Generated/VoidXTodoWidget-Info.plist
