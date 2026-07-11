@@ -26,12 +26,32 @@ xcodegen generate
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$ROOT_DIR/Generated/VoidXTodoWidget-Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $APP_BUILD" "$ROOT_DIR/Generated/VoidXTodoWidget-Info.plist"
 
-xcodebuild \
-  -project "$PROJECT" \
-  -scheme VoidXTodoMac \
-  -configuration Debug \
-  -quiet \
+XCODEBUILD_ARGS=(
+  -project "$PROJECT"
+  -scheme VoidXTodoMac
+  -configuration Debug
+  -quiet
   build
+)
+
+if [[ "${VOIDX_USE_DEVELOPMENT_PROFILES:-0}" == "1" ]]; then
+  echo "⚙️  Building with Apple Developer signing profiles..."
+  if [[ "${VOIDX_ALLOW_PROVISIONING_UPDATES:-0}" == "1" ]]; then
+    XCODEBUILD_ARGS=("-allowProvisioningUpdates" "${XCODEBUILD_ARGS[@]}")
+  fi
+else
+  echo "⚙️  Building with local ad-hoc signing..."
+  XCODEBUILD_ARGS+=(
+    "CODE_SIGN_STYLE=Manual"
+    "CODE_SIGN_IDENTITY=-"
+    "CODE_SIGNING_REQUIRED=YES"
+    "CODE_SIGNING_ALLOWED=YES"
+    "CODE_SIGN_ENTITLEMENTS="
+    "DEVELOPMENT_TEAM="
+  )
+fi
+
+xcodebuild "${XCODEBUILD_ARGS[@]}"
 
 BUILT_APP="$(find "$HOME/Library/Developer/Xcode/DerivedData" \
   -path "*/Build/Products/Debug/$APP_NAME" \

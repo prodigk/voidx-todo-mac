@@ -3,8 +3,7 @@ import UniformTypeIdentifiers
 
 struct TodayView: View {
     @EnvironmentObject private var store: TodoStore
-    @State private var editorTodo: TodoItem?
-    @State private var isEditorPresented = false
+    @State private var editorPresentation: TodoEditorPresentation?
 
     private var todayOccurrences: [TodoOccurrence] {
         store.occurrences(on: Date(), includeCompleted: true)
@@ -35,8 +34,7 @@ struct TodayView: View {
                             Spacer()
 
                             Button {
-                                editorTodo = nil
-                                isEditorPresented = true
+                                editorPresentation = .new()
                             } label: {
                                 Image(systemName: "plus")
                             }
@@ -67,25 +65,25 @@ struct TodayView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .appSurface()
-        .sheet(isPresented: $isEditorPresented) {
-            TodoEditorSheet(todo: editorTodo)
+        .sheet(item: $editorPresentation) { presentation in
+            TodoEditorSheet(
+                todo: presentation.todo,
+                defaultDueDate: presentation.defaultDueDate,
+                defaultScheduleScope: presentation.defaultScheduleScope
+            )
                 .environmentObject(store)
         }
     }
 
     private func edit(_ todo: TodoItem) {
-        editorTodo = todo
-        isEditorPresented = true
+        editorPresentation = .edit(todo)
     }
 }
 
 struct WeekView: View {
     @EnvironmentObject private var store: TodoStore
     @State private var focusedDate = Date()
-    @State private var editorTodo: TodoItem?
-    @State private var editorDueDate = Date()
-    @State private var editorScheduleScope: TodoScheduleScope = .day
-    @State private var isEditorPresented = false
+    @State private var editorPresentation: TodoEditorPresentation?
 
     private var days: [Date] {
         CalendarService.daysInWeek(containing: focusedDate)
@@ -122,8 +120,12 @@ struct WeekView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .appSurface()
-        .sheet(isPresented: $isEditorPresented) {
-            TodoEditorSheet(todo: editorTodo, defaultDueDate: editorDueDate, defaultScheduleScope: editorScheduleScope)
+        .sheet(item: $editorPresentation) { presentation in
+            TodoEditorSheet(
+                todo: presentation.todo,
+                defaultDueDate: presentation.defaultDueDate,
+                defaultScheduleScope: presentation.defaultScheduleScope
+            )
                 .environmentObject(store)
         }
     }
@@ -133,24 +135,49 @@ struct WeekView: View {
     }
 
     private func addTodo(on day: Date) {
-        editorTodo = nil
-        editorDueDate = CalendarService.mergingDay(day, timeFrom: Date())
-        editorScheduleScope = .day
-        isEditorPresented = true
+        editorPresentation = .new(
+            defaultDueDate: CalendarService.mergingDay(day, timeFrom: Date()),
+            defaultScheduleScope: .day
+        )
     }
 
     private func addWeeklyTodo() {
-        editorTodo = nil
-        editorDueDate = CalendarService.startOfWeek(containing: focusedDate)
-        editorScheduleScope = .week
-        isEditorPresented = true
+        editorPresentation = .new(
+            defaultDueDate: CalendarService.startOfWeek(containing: focusedDate),
+            defaultScheduleScope: .week
+        )
     }
 
     private func editTodo(_ todo: TodoItem) {
-        editorTodo = todo
-        editorDueDate = todo.dueDate
-        editorScheduleScope = todo.scheduleScope
-        isEditorPresented = true
+        editorPresentation = .edit(todo)
+    }
+}
+
+private struct TodoEditorPresentation: Identifiable {
+    let id: UUID
+    let todo: TodoItem?
+    let defaultDueDate: Date
+    let defaultScheduleScope: TodoScheduleScope
+
+    static func new(
+        defaultDueDate: Date = Date(),
+        defaultScheduleScope: TodoScheduleScope = .day
+    ) -> TodoEditorPresentation {
+        TodoEditorPresentation(
+            id: UUID(),
+            todo: nil,
+            defaultDueDate: defaultDueDate,
+            defaultScheduleScope: defaultScheduleScope
+        )
+    }
+
+    static func edit(_ todo: TodoItem) -> TodoEditorPresentation {
+        TodoEditorPresentation(
+            id: todo.id,
+            todo: todo,
+            defaultDueDate: todo.dueDate,
+            defaultScheduleScope: todo.scheduleScope
+        )
     }
 }
 
